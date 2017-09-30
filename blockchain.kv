@@ -1,0 +1,46 @@
+# Custom button
+<CustButton@Button>:
+    font_size: 32
+ 
+# Define id so I can refer to the blockGridLayout
+# class functions
+# Display points to the entry widget
+<blockGridLayout>:
+    id: blockchain
+    display: entry
+    rows: 2
+    padding: 10
+    spacing: 10
+ 
+    # Where input is displayed
+    BoxLayout:
+        Label:
+            id: entry
+            font_size: 18
+            multiline: False
+            text: "...Press start button to start blockchain..."
+            valign: 'middle'
+ 
+    # When buttons are pressed update the entry
+ 
+    # When equals is pressed pass text in the entry
+    # to the calculate function
+    BoxLayout:
+        spacing: 10
+        MyButton:
+            text: "Start"
+            id: start_button
+            on_press: 
+                stop_button.enabled = True
+                start_button.enabled = False
+                app.do_login()
+                entry.text = "Blockchain Started successfully"
+        MyButton:
+            text: "Stop"
+            id: stop_button
+            on_press: 
+                app.stop()
+                start_button.enabled = True  
+                stop_button.enabled = False 
+                entry.text = "Blockchain Stopped successfully"
+                #blockchain.calculate(entry.text)

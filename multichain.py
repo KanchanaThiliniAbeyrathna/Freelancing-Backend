@@ -7,6 +7,6 @@ rpcport = '6448'
 chainname = 'chain1'
 
 if __name__ == '__main__':
-    os.chdir(os.getcwd()+'\multichain')
-    os.system('cd')
+    # os.chdir(os.getcwd()+'\multichain')
+    # os.system('cd')
     os.system("multichaind "+chainname+" -deamon")

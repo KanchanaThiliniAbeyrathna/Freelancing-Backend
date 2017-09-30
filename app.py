@@ -2,12 +2,36 @@
 from Savoir import Savoir
 from flask import Flask,jsonify,request
 from flask_cors import CORS, cross_origin
+import subprocess
+import getpass
+import re
 
-rpcuser = 'multichainrpc'
-rpcpasswd = 'BjAgaHcha9o59AW1Py9FVQ8DH5JefCBUwFPD3iu3hyoz'
+si = subprocess.STARTUPINFO()
+si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+si.wShowWindow = subprocess.SW_HIDE # default
+
+local_username = getpass.getuser()
+chainname = 'testchain'
 rpchost = '127.0.0.1'
-rpcport = '6448'
-chainname = 'chain1'
+rpcuser = ''
+rpcpasswd = ''
+rpcport = ''
+
+try:
+    conf_file = open(
+        "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\multichain.conf", "r")
+    conf_lines = conf_file.readlines()
+    rpcuser = re.findall(r"[\w']+", str(str(conf_lines[0])))[1]
+    rpcpasswd = re.findall(r"[\w']+", str(str(conf_lines[1])))[1]
+
+    params_file = open("C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\params.dat",
+                       "r")
+    params_lines = params_file.readlines()
+
+    rpcport = re.findall(r"[\w']+", str(params_lines[87]))[3]
+
+except FileNotFoundError:
+    print("File Not Found")
 
 api = Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 
@@ -16,8 +40,25 @@ CORS(app)
 
 @app.route('/')
 def index():
-    return "Hello, World!"
+    return "Working"
 # General utilities
+
+@app.route('/start')
+def start():
+    subprocess.Popen("multichaind " + chainname + " -deamon", startupinfo=si)
+    return "Multichain Started"
+
+# @app.route('/stop')
+# def stop():
+#     subprocess.Popen("multichain-cli " + chainname + " stop", startupinfo=si)
+#     return "Multichain stopped"
+
+@app.route('/node', methods=['GET'])
+def getnodeinfo():
+    result = subprocess.Popen("multichaind testchain@192.248.15.152:6791", startupinfo=si, stdout=subprocess.PIPE)
+    lines = result.stdout.readlines()
+    tokens = str(lines[4]).split(' ')
+    return tokens[3]
 
 @app.route('/getinfo', methods=['GET'])
 def getinfo():
