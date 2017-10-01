@@ -5,6 +5,7 @@ from flask_cors import CORS, cross_origin
 import subprocess
 import getpass
 import re
+import time
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -24,11 +25,16 @@ try:
     rpcuser = re.findall(r"[\w']+", str(str(conf_lines[0])))[1]
     rpcpasswd = re.findall(r"[\w']+", str(str(conf_lines[1])))[1]
 
+    conf_file.close()
     params_file = open("C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\params.dat",
                        "r")
-    params_lines = params_file.readlines()
+    # params_lines = params_file.readlines()
 
-    rpcport = re.findall(r"[\w']+", str(params_lines[87]))[3]
+    for params_line in params_file:
+        if "default-rpc-port" in (str(params_line)):
+            rpcport = re.findall(r"[\w']+", str(params_line))[3]
+
+    params_file.close()
 
 except FileNotFoundError:
     print("File Not Found")
@@ -46,7 +52,18 @@ def index():
 @app.route('/start')
 def start():
     subprocess.Popen("multichaind " + chainname + " -deamon", startupinfo=si)
-    return "Multichain Started"
+    time.sleep(10)
+    return "started"
+
+@app.route('/checkchain')
+def checkchain():
+    try:
+        conf_file = open(
+            "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\permissions.dat", "r")
+        conf_file.close()
+        return "yes"
+    except FileNotFoundError:
+        return "no"
 
 # @app.route('/stop')
 # def stop():
