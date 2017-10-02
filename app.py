@@ -12,7 +12,7 @@ si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 si.wShowWindow = subprocess.SW_HIDE # default
 
 local_username = getpass.getuser()
-chainname = 'testchain'
+chainname = 'newchain'
 rpchost = '127.0.0.1'
 rpcuser = ''
 rpcpasswd = ''
@@ -51,7 +51,8 @@ def index():
 
 @app.route('/start')
 def start():
-    subprocess.Popen("multichaind " + chainname + " -deamon", startupinfo=si)
+    r=subprocess.Popen("multichaind " + chainname + " -deamon", startupinfo=si)
+    r.stdout
     time.sleep(10)
     return "started"
 
@@ -72,7 +73,7 @@ def checkchain():
 
 @app.route('/node', methods=['GET'])
 def getnodeinfo():
-    result = subprocess.Popen("multichaind testchain@192.248.15.152:6791", startupinfo=si, stdout=subprocess.PIPE)
+    result = subprocess.Popen("multichaind newchain@192.248.15.152:4267", startupinfo=si, stdout=subprocess.PIPE)
     lines = result.stdout.readlines()
     tokens = str(lines[4]).split(' ')
     return tokens[3]

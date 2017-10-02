@@ -6,7 +6,7 @@ from kivy.properties import BooleanProperty
 from kivy.uix.button import Button
 import subprocess
 
-chainname = 'testchain'
+chainname = 'newchain'
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
