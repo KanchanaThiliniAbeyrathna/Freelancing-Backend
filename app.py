@@ -298,8 +298,17 @@ def preparelockunspent():
 @app.route('/preparelockunspentfrom', methods=['GET'])
 def preparelockunspentfrom():
     address = request.args.get('address')
-    assets = request.args.get('assets') #{"asset":qty, ...}
+    asset = request.args.get('asset') #{"asset":qty, ...}
+    qty = int(request.args.get('qty'))
+    assets = {asset:qty}
     return jsonify(api.preparelockunspentfrom(address,assets))
+
+@app.route('/lockunspent', methods=['GET'])
+def lockunspent():
+    unlock = True;
+    return jsonify(api.preparelockunspentfrom(unlock))
+
+@app.route('/appendrawexchange', methods=['GET'])
 
 @app.route('/appendrawexchange', methods=['GET'])
 def appendrawexchange():
