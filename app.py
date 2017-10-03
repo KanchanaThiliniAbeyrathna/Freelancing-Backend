@@ -213,7 +213,8 @@ def listassets():
 @app.route('/getaddressbalances', methods=['GET'])
 def getaddressbalances():
     address = request.args.get('address')
-    return jsonify(api.getaddressbalances(address))
+    includeLocked = eval(request.args.get('includeLocked'))
+    return jsonify(api.getaddressbalances(address,0,includeLocked))
 
 @app.route('/getaddresstransaction', methods=['GET'])
 def getaddresstransaction():
@@ -255,7 +256,7 @@ def send():
 def sendasset():
     address = request.args.get('address')
     asset = request.args.get('asset')
-    qty = request.args.get('qty')
+    qty = int(request.args.get('qty'))
     return jsonify(api.sendasset(address,asset,qty))
 
 @app.route('/sendassetfrom', methods=['GET'])
@@ -263,7 +264,7 @@ def sendassetfrom():
     from_address = request.args.get('from_address')
     to_address = request.args.get('to_address')
     asset = request.args.get('asset')
-    qty = request.args.get('qty')
+    qty = int(request.args.get('qty'))
     return jsonify(api.sendassetfrom(from_address,to_address,asset,qty))
 
 @app.route('/sendfrom', methods=['GET'])
@@ -306,7 +307,7 @@ def preparelockunspentfrom():
 @app.route('/lockunspent', methods=['GET'])
 def lockunspent():
     unlock = True;
-    return jsonify(api.preparelockunspentfrom(unlock))
+    return jsonify(api.lockunspent(unlock))
 
 @app.route('/appendrawexchange', methods=['GET'])
 
