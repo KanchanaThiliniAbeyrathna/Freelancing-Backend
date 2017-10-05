@@ -34,7 +34,7 @@
                 stop_button.enabled = True
                 start_button.enabled = False
                 app.do_login()
-                entry.text = "Blockchain Started successfully"
+                entry.text = app.getStart()
         MyButton:
             text: "Stop"
             id: stop_button
@@ -42,5 +42,5 @@
                 app.stop()
                 start_button.enabled = True  
                 stop_button.enabled = False 
-                entry.text = "Blockchain Stopped successfully"
+                entry.text = app.getStop()
                 #blockchain.calculate(entry.text)
