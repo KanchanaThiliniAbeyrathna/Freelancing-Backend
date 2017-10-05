@@ -16,12 +16,10 @@ pip install requests
 
 pip insall Savoir
 
-## Backend server
+Kivy installation for Windows - https://kivy.org/docs/installation/installation-windows.html
 
-Run app.py
+## Backend Desktop Application
 
-Navigate to `http://localhost:5000/`. The app will automatically reload if you change any of the source files.
+Run kivyblock.py 
 
-## Multichain Node
-
-Run multichain.py
+Navigate to `http://localhost:5000/` to run api calls. The app will automatically reload if you change any of the source files.
