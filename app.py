@@ -426,7 +426,8 @@ def gettxoutdata():
 def liststreamkeyitems():
     key = request.args.get('key')
     stream = request.args.get('stream')
-    return jsonify(api.liststreamkeyitems(stream,key))
+    count = 100
+    return jsonify(api.liststreamkeyitems(stream,key,False,count))
 
 @app.route('/liststreamkeys', methods=['GET'])
 def liststreamkeys():
@@ -436,7 +437,8 @@ def liststreamkeys():
 @app.route('/liststreamitems', methods=['GET'])
 def liststreamitems():
     stream = request.args.get('stream')
-    return jsonify(api.liststreamitems(stream))
+    count = 100
+    return jsonify(api.liststreamitems(stream,False,count))
 
 @app.route('/liststreampublisheritems', methods=['GET'])
 def liststreampublisheritems():
