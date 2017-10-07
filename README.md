@@ -10,11 +10,13 @@ Go to your python installation folder and run,
 
 pip install Flask
 
-pip intall Flask-Cors
+pip install Flask-Cors
 
 pip install requests
 
-pip insall Savoir
+pip install Savoir
+
+pip install pycrypto
 
 Kivy installation for Windows - https://kivy.org/docs/installation/installation-windows.html
 
