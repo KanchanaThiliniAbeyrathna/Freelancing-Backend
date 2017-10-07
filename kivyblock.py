@@ -58,9 +58,9 @@ class BlockchainApp(App):
     def do_login(self, *args):
         subprocess.Popen(['python.exe', 'app.py', 'htmlfilename.htm'], startupinfo=si)
         subprocess.Popen("multichaind "+chainname+" -deamon", startupinfo=si)
-        time.sleep(5)
-        streams = ["projects", "contracts", "ContractStatus", "Users", "skills", "user-skill", "user-edu",
-                   "user-portfolio", "user-work", "bid", "project_user_type", "ContractRules", "pubkeys"]
+        time.sleep(10)
+        streams = ["projects","ProjectStatus", "contracts", "ContractStatus", "Users", "skills", "user-skill", "user-edu",
+                   "user-portfolio", "user-work","user-review", "bid", "project_user_type", "ContractRules", "pubkeys"]
         for stream in streams:
             subprocess.Popen("multichain-cli " + chainname + " subscribe " + stream, startupinfo=si)
         time.sleep(10)
