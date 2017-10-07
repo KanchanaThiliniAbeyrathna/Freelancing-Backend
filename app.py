@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
-from Savoir import Savoir
+from Savoir.Savoir import Savoir
 from flask import Flask,jsonify,request
 from flask_cors import CORS, cross_origin
 import subprocess
 import getpass
 import re
 import time
+from Crypto.PublicKey import RSA
+import os
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -47,7 +49,58 @@ CORS(app)
 @app.route('/')
 def index():
     return "Working"
+
 # General utilities
+@app.route('/keygenerate', methods=['GET'])
+def keygenerate():
+    address = request.args.get('address')
+    if not address:
+        return "Please add address"
+    private = RSA.generate(1024)
+    public = private.publickey()
+    prikey = private.exportKey()
+    pubkey = public.exportKey()
+    path = "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\stream-privkeys"
+    print("mkdir " + path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    f = open(path +'\\' + address + '.pem','ab')
+    f.write(prikey)
+    f.close()
+    f = open(path +'\\' + address + '.pem','rb')
+    stream = "pubkeys"
+    key = address
+    data_hex = public.exportKey("DER") 
+    decode = bytes.fromhex(data_hex.hex())
+    p_key = RSA.importKey(decode).exportKey()
+    api.publish(stream,key, data_hex.hex())
+    return jsonify({"key":pubkey.decode('utf-8'),"address":address})
+
+@app.route('/encrypt', methods=['GET'])
+def encrypt():
+    address = request.args.get('address')
+    data = request.args.get('data')
+    stream = "pubkeys"
+    result = api.liststreamkeyitems(stream,address)
+    decode = bytes.fromhex(result[0]['data'])
+    p_key = RSA.importKey(decode).exportKey()
+    encrypted = RSA.importKey(p_key).encrypt(data.encode('utf-8'), 32)
+    return jsonify({"data":encrypted[0].hex()})
+
+
+@app.route('/decrypt', methods=['GET'])
+def decrypt():
+    address = request.args.get('address')
+    encrypted =  request.args.get('encrypted')
+    decode = bytes.fromhex(encrypted)
+    path = "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\stream-privkeys"
+    f = open(path +'\\' + address + '.pem','rb')
+    key = RSA.importKey(f.read())
+    print(key.exportKey())
+    prikey = key.exportKey()
+    #Decrypt with private key
+    decrypted = RSA.importKey(prikey).decrypt(decode)
+    return jsonify({'data':decrypted.decode('utf-8')})
 
 @app.route('/start')
 def start():
