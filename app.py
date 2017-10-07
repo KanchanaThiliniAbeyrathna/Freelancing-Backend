@@ -58,6 +58,12 @@ def keygenerate():
     address = request.args.get('address')
     if not address:
         return "Please add address"
+    addresses = api.getaddresses()
+    if not (address in addresses):
+        return "You dont have permission to generate keys the address: "+address
+    pubkeys = api.liststreamkeyitems("pubkeys",address)
+    if pubkeys:
+        return "Address already exists"
     private = RSA.generate(1024)
     public = private.publickey()
     prikey = private.exportKey()
