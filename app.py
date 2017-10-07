@@ -8,6 +8,8 @@ import re
 import time
 from Crypto.PublicKey import RSA
 import os
+from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA512, SHA384, SHA256, SHA, MD5
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -60,6 +62,7 @@ def keygenerate():
     public = private.publickey()
     prikey = private.exportKey()
     pubkey = public.exportKey()
+    print(pubkey, prikey)
     path = "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\stream-privkeys"
     print("mkdir " + path)
     if not os.path.exists(path):
@@ -101,6 +104,49 @@ def decrypt():
     #Decrypt with private key
     decrypted = RSA.importKey(prikey).decrypt(decode)
     return jsonify({'data':decrypted.decode('utf-8')})
+
+
+@app.route('/sign', methods=['GET'])
+def sign():
+    address = request.args.get('address')
+    data = request.args.get('data')
+    # Hash the data
+    digest = SHA256.new()
+    digest.update(str(data).encode('utf-8'))
+    print("digetst : ",digest)
+    # Load private key
+    path = "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\stream-privkeys"
+    f = open(path +'\\' + address + '.pem','rb')
+    key = RSA.importKey(f.read())
+    print("pri key : ", key)
+    # Sign message
+    signer = PKCS1_v1_5.new(key)
+    sig = signer.sign(digest)
+    return jsonify({'sign':sig.hex()})
+
+@app.route('/verify', methods=['GET'])
+def verify():
+    stream = "pubkeys"
+    address = request.args.get('address')
+    signature = request.args.get('signature')
+    data = request.args.get('data')
+    # Hash the data
+    digest = SHA256.new()
+    digest.update(str(data).encode('utf-8'))
+    print("digetst : ",digest)
+    # Load public key
+    result = api.liststreamkeyitems(stream,address)
+    decode = bytes.fromhex(result[0]['data'])
+    p_key = RSA.importKey(decode)
+    print("Public key : ", p_key)
+    # Load public key and verify message
+    verifier = PKCS1_v1_5.new(p_key)
+    decode_sig = bytes.fromhex(signature)
+    verified = verifier.verify(digest, decode_sig)
+    assert verified, 'Signature verification failed'
+    print('Successfully verified message')
+    return jsonify({'verified':verified})
+
 
 @app.route('/start')
 def start():
