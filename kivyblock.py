@@ -4,13 +4,21 @@ from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import BooleanProperty
 from kivy.uix.button import Button
+from kivy.config import Config
 import subprocess
+import time
+import app
+from threading import Timer
 
 chainname = 'newchain'
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 si.wShowWindow = subprocess.SW_HIDE # default
+
+Config.set('graphics', 'width', '500')
+Config.set('graphics', 'height', '250')
+
 
 class MyButton(Button):
     enabled = BooleanProperty(True)
@@ -50,7 +58,18 @@ class BlockchainApp(App):
     def do_login(self, *args):
         subprocess.Popen(['python.exe', 'app.py', 'htmlfilename.htm'], startupinfo=si)
         subprocess.Popen("multichaind "+chainname+" -deamon", startupinfo=si)
+        time.sleep(5)
+        streams = ["projects", "contracts", "ContractStatus", "Users", "skills", "user-skill", "user-edu",
+                   "user-portfolio", "user-work", "bid", "project_user_type", "ContractRules"];
+        for stream in streams:
+            subprocess.Popen("multichain-cli " + chainname + " subscribe " + stream, startupinfo=si)
+        time.sleep(10)
 
+    def getStart(self):
+        return "Blockchain Started Successfully"
+
+    def getStop(self):
+        return "Blockchain Stopped successfully"
 
     def stop(self, *args):
         subprocess.Popen("multichain-cli "+chainname+" stop", startupinfo=si)
