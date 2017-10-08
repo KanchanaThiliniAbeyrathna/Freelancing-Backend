@@ -60,7 +60,7 @@ class BlockchainApp(App):
         subprocess.Popen("multichaind "+chainname+" -deamon", startupinfo=si)
         time.sleep(10)
         streams = ["projects","ProjectStatus", "contracts", "ContractStatus", "Users", "skills", "user-skill", "user-edu",
-                   "user-portfolio", "user-work","user-review", "bid", "project_user_type", "ContractRules", "pubkeys"]
+                   "user-portfolio", "user-work","user-reviews", "bid", "project_user_type", "ContractRules", "pubkeys"]
         for stream in streams:
             subprocess.Popen("multichain-cli " + chainname + " subscribe " + stream, startupinfo=si)
         time.sleep(10)
