@@ -60,7 +60,7 @@ delta_t=y-x
 secs=delta_t.seconds+1
 
 def autoupdatecontracts():
-    print("auto updating contracts")
+    print("auto executing contracts")
     contracts_stream = "contracts"
     rules_stream = "ContractRules"
     con_status_stream = "ContractStatus"
@@ -74,46 +74,136 @@ def autoupdatecontracts():
         client_email = contract['client_email']
         r = json.loads(json.dumps(api.liststreamkeyitems(rules_stream, client_email)))
         if r:
-            rule = json.loads(Hex2String(r[len(r) - 1]['data']))
+            rule = json.loads(Hex2String(r[len(r) - 1]["data"]))
 
         # load contract status
         contract_txid = c['txid']
         cs = json.loads(json.dumps(api.liststreamkeyitems(con_status_stream, contract_txid)))
-        contract_status = json.loads(Hex2String(cs[len(cs) - 1]['data']))
 
-        # load active contracts
-        if contract_status['status'] == "Active":
+        if len(cs) != 0:
+            contract_status = json.loads(Hex2String(cs[len(cs) - 1]['data']))
 
-            # Freelancer fail to meet a deadline
-            if contract['type'] == "Freelancer":
+            # load active contracts
+            if contract_status['status'] == "Active":
 
                 # check if contract has milestones
-                if (len(contract['milestoneValues']) != 0):
+                if (len(contract['milestoneValues']) > 0):
+
                     current_milestone = contract_status['current_milestone']
-                    milestoneValues = contract['milestoneValues'][current_milestone - 1]
+                    milestoneValue = contract['milestoneValues'][current_milestone - 1]
                     contract_deadline = datetime.date(datetime.strptime(milestoneValues['deadline'], "%Y-%m-%d"))
 
                 else:
                     contract_deadline = datetime.date(datetime.strptime(contract['deadline'], "%Y-%m-%d"))
 
                 today = datetime.date(datetime.now())
+
                 if contract_deadline < today:
                     delay = today.day - contract_deadline.day
-                    if rule['project_worth_mark'] < contract['amount']:
-                        if delay < rule['freelancer_contract_cancel_days_high']:
-                            print("rduced by 5%")
-                            # milestone payment will be reduced by 5 %
-                        elif delay == rule['freelancer_contract_cancel_days_high']:
-                            print("cancel contract")
-                            # cancel contract
+                    print(delay)
 
-                    else:
-                        if delay < rule['freelancer_contract_cancel_days_low']:
-                            print("rduced by 5%")
-                            # milestone payment will be reduced by 5 %
-                        elif delay == rule['freelancer_contract_cancel_days_low']:
-                            print("cancel contract")
-                            # cancel contract
+                    project_worth_mark = int(rule['project_worth_mark'])
+                    contract_amount = int(contract['amount'])
+
+                    # Freelancer fail to meet a deadline
+                    if contract['type'] == "Freelancer":
+
+                        reduce_percentage = rule['freelancer_pay_reduce_percentage']
+
+                        if project_worth_mark < contract_amount:
+                            if delay < rule['freelancer_contract_cancel_days_high']:
+                                if (milestoneValue):
+                                    # calculate reduced amount
+                                    milestone_amout = int(milestoneValue['value']) - contract_amount * int(
+                                        milestoneValue['value']) * (reduce_percentage) / 10000
+
+                                    # update reduced amount
+                                    contract['milestoneValues'][current_milestone - 1]['value'] = milestone_amout
+                                    data_hex = String2Hex(json.dumps(contract))
+                                    # api.publish(contracts_stream,str(contract['projectName']),data_hex)
+
+                            elif delay == rule['freelancer_contract_cancel_days_high']:
+
+                                # cancel contract
+                                contract_status['status'] = "Cancelled"
+                                data_hex = String2Hex(json.dumps(contract_status))
+                                # api.publish(con_status_stream, str(contract_txid), data_hex)
+
+                                try:
+                                    if contract['contract_link'] != None:
+                                        linked_contract_txid = str(contract['contract_link'])
+                                        cancel_linked_contract(linked_contract_txid, con_status_stream)
+                                except KeyError:
+                                    print("Key error")
+
+                        else:
+                            if delay < rule['freelancer_contract_cancel_days_low']:
+                                if (milestoneValue):
+                                    # calculate reduced amount
+                                    milestone_amout = int(milestoneValue['value']) - contract_amount * int(
+                                        milestoneValue['value']) * (reduce_percentage) / 10000
+
+                                    # update reduced amount
+                                    contract['milestoneValues'][current_milestone - 1]['value'] = milestone_amout
+                                    data_hex = String2Hex(json.dumps(contract))
+                                    # api.publish(contracts_stream, str(contract['projectName']), data_hex)
+
+                            elif delay == rule['freelancer_contract_cancel_days_low']:
+
+                                # cancel contract
+                                contract_status['status'] = "Cancelled"
+                                data_hex = String2Hex(json.dumps(contract_status))
+                                # api.publish(con_status_stream, str(contract_txid), data_hex)
+
+                                try:
+                                    if contract['contract_link'] != None:
+                                        linked_contract_txid = str(contract['contract_link'])
+                                        cancel_linked_contract(linked_contract_txid, con_status_stream)
+                                except KeyError:
+                                    print("Key error")
+
+                    # QA fail to meet a deadline
+                    if contract['type'] == "QA":
+
+                        reduce_percentage = rule['qa_pay_reduce_percentage']
+
+                        if project_worth_mark < contract_amount:
+                            if delay < rule['qa_contract_cancel_days_high']:
+                                if (milestoneValue):
+                                    # calculate reduced amount
+                                    milestone_amout = int(milestoneValue['value']) - contract_amount * int(
+                                        milestoneValue['value']) * (reduce_percentage) / 10000
+
+                                    # update reduced amount
+                                    contract['milestoneValues'][current_milestone - 1]['value'] = milestone_amout
+                                    data_hex = String2Hex(json.dumps(contract))
+                                    # api.publish(contracts_stream, str(contract['projectName']), data_hex)
+
+                            elif delay == rule['freelancer_contract_cancel_days_high']:
+                                # cancel contract
+                                contract_status['status'] = "Cancelled"
+                                data_hex = String2Hex(json.dumps(contract_status))
+                                # api.publish(con_status_stream, str(contract_txid), data_hex)
+
+                        else:
+                            if delay < rule['qa_contract_cancel_days_low']:
+                                if (milestoneValue):
+                                    # calculate reduced amount
+                                    milestone_amout = int(milestoneValue['value']) - contract_amount * int(
+                                        milestoneValue['value']) * (reduce_percentage) / 10000
+
+                                    # update reduced amount
+                                    contract['milestoneValues'][current_milestone - 1]['value'] = milestone_amout
+                                    data_hex = String2Hex(json.dumps(contract))
+                                    # api.publish(contracts_stream, str(contract['projectName']), data_hex)
+
+                            elif delay == rule['qa_contract_cancel_days_high']:
+                                # cancel contract
+                                contract_status['status'] = "Cancelled"
+                                data_hex = String2Hex(json.dumps(contract_status))
+                                # api.publish(con_status_stream, str(contract_txid), data_hex)
+
+    print("end of auto executing contracts")
 
 
 t = Timer(secs, autoupdatecontracts)
@@ -121,7 +211,18 @@ t.start()
 
 @app.route('/')
 def index():
-    return "Working1"
+    return "Working"
+
+def cancel_linked_contract(linked_contract_txid,con_status_stream):
+    # laod linked contract
+    lcs = json.loads(
+        json.dumps(api.liststreamkeyitems(con_status_stream, linked_contract_txid)))
+    linked_contract_status = json.loads(Hex2String(lcs[len(lcs) - 1]['data']))
+
+    # cancel linked contract
+    linked_contract_status['status'] = "Cancelled"
+    data_hex = String2Hex(json.dumps(linked_contract_status))
+    # api.publish(con_status_stream, linked_contract_txid, data_hex)
 
 def Hex2String(hex_str):
     chunks =len(hex_str)
@@ -136,7 +237,7 @@ def String2Hex(s):
     result = "";
     for i in list(s):
         h = hex(ord(i))
-        result += ("000" + str(h))[-4:]
+        result += ("000" + str(h)[2:])[-4:]
     return result
 
 # General utilities
