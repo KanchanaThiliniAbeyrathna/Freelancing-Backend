@@ -10,6 +10,11 @@ from Crypto.PublicKey import RSA
 import os
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA512, SHA384, SHA256, SHA, MD5
+from datetime import datetime
+from threading import Timer
+import json
+from datetime import datetime
+
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -48,9 +53,91 @@ api = Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 app = Flask(__name__)
 CORS(app)
 
+x=datetime.today()
+y=x.replace(day=x.day+1, hour=0, minute=0, second=0, microsecond=0)
+delta_t=y-x
+
+secs=delta_t.seconds+1
+
+def autoupdatecontracts():
+    print("auto updating contracts")
+    contracts_stream = "contracts"
+    rules_stream = "ContractRules"
+    con_status_stream = "ContractStatus"
+
+    count = 100
+    contracts = json.loads(json.dumps(api.liststreamitems(contracts_stream, False, count)))
+    for c in contracts:
+        contract = json.loads(Hex2String(c['data']))
+
+        # load contract rule
+        client_email = contract['client_email']
+        r = json.loads(json.dumps(api.liststreamkeyitems(rules_stream, client_email)))
+        if r:
+            rule = json.loads(Hex2String(r[len(r) - 1]['data']))
+
+        # load contract status
+        contract_txid = c['txid']
+        cs = json.loads(json.dumps(api.liststreamkeyitems(con_status_stream, contract_txid)))
+        contract_status = json.loads(Hex2String(cs[len(cs) - 1]['data']))
+
+        # load active contracts
+        if contract_status['status'] == "Active":
+
+            # Freelancer fail to meet a deadline
+            if contract['type'] == "Freelancer":
+
+                # check if contract has milestones
+                if (len(contract['milestoneValues']) != 0):
+                    current_milestone = contract_status['current_milestone']
+                    milestoneValues = contract['milestoneValues'][current_milestone - 1]
+                    contract_deadline = datetime.date(datetime.strptime(milestoneValues['deadline'], "%Y-%m-%d"))
+
+                else:
+                    contract_deadline = datetime.date(datetime.strptime(contract['deadline'], "%Y-%m-%d"))
+
+                today = datetime.date(datetime.now())
+                if contract_deadline < today:
+                    delay = today.day - contract_deadline.day
+                    if rule['project_worth_mark'] < contract['amount']:
+                        if delay < rule['freelancer_contract_cancel_days_high']:
+                            print("rduced by 5%")
+                            # milestone payment will be reduced by 5 %
+                        elif delay == rule['freelancer_contract_cancel_days_high']:
+                            print("cancel contract")
+                            # cancel contract
+
+                    else:
+                        if delay < rule['freelancer_contract_cancel_days_low']:
+                            print("rduced by 5%")
+                            # milestone payment will be reduced by 5 %
+                        elif delay == rule['freelancer_contract_cancel_days_low']:
+                            print("cancel contract")
+                            # cancel contract
+
+
+t = Timer(secs, autoupdatecontracts)
+t.start()
+
 @app.route('/')
 def index():
-    return "Working"
+    return "Working1"
+
+def Hex2String(hex_str):
+    chunks =len(hex_str)
+    chunk_size = 4
+    hs = [ hex_str[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
+    result_back = "";
+    for h in hs:
+        result_back += chr(int(h, 16))
+    return result_back
+
+def String2Hex(s):
+    result = "";
+    for i in list(s):
+        h = hex(ord(i))
+        result += ("000" + str(h))[-4:]
+    return result
 
 # General utilities
 @app.route('/keygenerate', methods=['GET'])
