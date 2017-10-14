@@ -14,7 +14,7 @@ from datetime import datetime
 from threading import Timer
 import json
 from datetime import datetime
-
+import urllib.request
 
 si = subprocess.STARTUPINFO()
 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -48,10 +48,27 @@ try:
 except FileNotFoundError:
     print("File Not Found")
 
+try:
+    conf_file = open(
+        "C:\\Users\\" + local_username + "\\AppData\\Roaming\\MultiChain\\" + chainname + "\\permissions.dat","r")
+    conf_file.close()
+
+except FileNotFoundError:
+    print("Multichain not found")
+    result = subprocess.Popen("multichaind newchain@192.248.15.152:4267", startupinfo=si, stdout=subprocess.PIPE)
+    lines = result.stdout.readlines()
+    tokens = str(lines[4]).split(' ')
+    node = tokens[3]
+    params = urllib.parse.urlencode({'node': node})
+    result = urllib.request.urlopen("http://blockwork.projects.mrt.ac.lk/grant_connect.php?" + params).read()
+    print(result)
+    print("successfully initiated blockchain")
+
 api = Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 
 app = Flask(__name__)
 CORS(app)
+
 
 x=datetime.today()
 y=x.replace(day=x.day+1, hour=0, minute=0, second=0, microsecond=0)
