@@ -71,7 +71,11 @@ CORS(app)
 
 
 x=datetime.today()
-y=x.replace(day=x.day+1, hour=0, minute=0, second=0, microsecond=0)
+d = x.day
+if(x.day > 30):
+    d = 1
+
+y=x.replace(day=d+1, hour=0, minute=0, second=0, microsecond=0)
 delta_t=y-x
 
 secs=delta_t.seconds+1
@@ -264,9 +268,11 @@ def keygenerate():
     if not address:
         return "Please add address"
     addresses = api.getaddresses()
+
     if not (address in addresses):
         return "You dont have permission to generate keys the address: "+address
     pubkeys = api.liststreamkeyitems("pubkeys",address)
+    print (pubkeys)
     if pubkeys:
         return "Address already exists"
     private = RSA.generate(1024)
