@@ -48,7 +48,7 @@ class blockGridLayout(GridLayout):
             except Exception:
                 self.display.text = "Error"
  
-class BlockchainApp(App):
+class BlockWorkerApp(App):
  
     def build(self):
         print(self)
@@ -66,14 +66,14 @@ class BlockchainApp(App):
         time.sleep(10)
 
     def getStart(self):
-        return "Blockchain Started Successfully"
+        return "BlockWorker Started Successfully"
 
     def getStop(self):
-        return "Blockchain Stopped successfully"
+        return "BlockWorker Stopped successfully"
 
     def stop(self, *args):
         subprocess.Popen("multichain-cli "+chainname+" stop", startupinfo=si)
 
  
-blockApp = BlockchainApp()
+blockApp = BlockWorkerApp()
 blockApp.run()

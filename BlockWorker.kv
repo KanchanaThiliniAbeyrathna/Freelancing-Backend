@@ -6,7 +6,7 @@
 # class functions
 # Display points to the entry widget
 <blockGridLayout>:
-    id: blockchain
+    id: BlockWorker
     display: entry
     rows: 2
     padding: 10
@@ -18,7 +18,7 @@
             id: entry
             font_size: 18
             multiline: False
-            text: "...Press start button to start blockchain..."
+            text: "...Press start button to start BlockWorker..."
             valign: 'middle'
  
     # When buttons are pressed update the entry
@@ -43,4 +43,4 @@
                 start_button.enabled = True  
                 stop_button.enabled = False 
                 entry.text = app.getStop()
-                #blockchain.calculate(entry.text)
+                #BlockWorker.calculate(entry.text)
