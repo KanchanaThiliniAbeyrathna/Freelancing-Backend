@@ -554,7 +554,8 @@ def getwallettransaction():
 @app.route('/listaddresstransactions', methods=['GET'])
 def listaddresstransactions():
     address = request.args.get('address')
-    return jsonify(api.listaddresstransactions(address))
+    count = 100
+    return jsonify(api.listaddresstransactions(address,count))
 
 @app.route('/listwallettransactions', methods=['GET'])
 def listwallettransactions():
